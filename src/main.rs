@@ -1,4 +1,5 @@
 mod lexer;
+mod parse_ast;
 mod parser;
 
 fn main() {
