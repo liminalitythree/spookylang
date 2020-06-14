@@ -1,16 +1,24 @@
-mod lexer;
-mod parse_ast;
-mod parser;
+mod ast;
+mod parse;
+
+extern crate pest;
+#[macro_use]
+extern crate pest_derive;
+
 
 fn main() {
-    let input = "Int.Fuction('fib', args=Int.New('i'), opts=(Int.New('a'), Int.New('b')), body=(
-        (a.isUnset().then(a.set(0))),
-        (b.isUnset().then(b.set(1))),
-        (i.isEqual(0).then(this.exit(a), otherwise=this.exit(this(i.sub(1), b, a.add(b)))))
-    ))
+    let input = "b().v().a.d.v(2)
     ";
-    let mut lexer = lexer::Lexer::new(input.to_string());
-    let tokens = lexer.scan_tokens();
+    let res = parse::parse(input);
+    
+    match res {
+        Ok(ast) => {
+            //println!("{:?}", ast);
+        }
+        Err(err) => {
+            println!("Syntax error:");
+            println!("{}", err);
+        }
+    }
 
-    println!("{:?}", tokens);
 }

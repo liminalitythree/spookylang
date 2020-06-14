@@ -1,0 +1,20 @@
+program     = _{ SOI ~ expr+ ~ EOI }
+
+expr        = {single ~ ("." ~ (identifier ~ callArgs?))* }
+single      = _{ atom ~ callArgs?}
+atom        = _{ literal | identifier }
+
+callArgs    = !{"(" ~ args? ~ ")" }
+args        = _{ argexpr ~ ("," ~ argexpr)* }
+argexpr     = _{ expr | namedArg }
+namedArg    = { rawIdent ~ "=" ~ expr }
+
+identifier  = @{ rawIdent ~ ("." ~ rawIdent)* }
+literal     = _{ string | decimal | number }
+string      = @{ "'" ~ (!"'" ~ ANY)* ~ "'" }
+decimal     = @{ number ~ "." ~ number }
+number      = @{ ASCII_DIGIT+ }
+rawIdent    = @{ ASCII_ALPHA+ }
+
+WHITESPACE = _{ " " | "\t" | "\n" | "\r\n" }
+COMMENT = _{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
