@@ -1,14 +1,15 @@
 #[derive(Debug)]
-pub enum Expr {
+pub enum Expr<'a> {
     Integer(i32),
     Float(f32),
-    StringLiteral(String),
-    
-    Call(Vec<Expr>, Vec<Arg>)
+    StringLiteral(&'a str),
+
+    Identifier(&'a str),
+    Call(Vec<Expr<'a>>, Vec<Arg<'a>>),
 }
 
 #[derive(Debug)]
-pub enum Arg {
-    Expr(Expr),
-    NamedArg(String, Expr),
+pub enum Arg<'a> {
+    Expr(Expr<'a>),
+    NamedArg(&'a str, Expr<'a>),
 }

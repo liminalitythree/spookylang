@@ -12,7 +12,9 @@ pub fn parse(source: &str) -> Result<Vec<Expr>, Error<Rule>> {
 
     let exprs = SpookyParser::parse(Rule::program, source)?;
     for expr in exprs {
-        ast.push(exp_r(expr));
+        if expr.as_rule() != Rule::EOI {
+            ast.push(exp_r(expr));
+        }
     }
 
     Ok(ast)
@@ -20,23 +22,41 @@ pub fn parse(source: &str) -> Result<Vec<Expr>, Error<Rule>> {
 
 fn exp_r(pair: Pair<Rule>) -> Expr {
     let pairs = pair.into_inner();
+    let mut exprs: Vec<Expr> = Vec::new();
+
     for p in pairs {
-        println!("{:?}", p);
+        let rule = p.as_rule();
+        match rule {
+            Rule::number | Rule::string | Rule::decimal => {
+                exprs.push(literal(p));
+            }
+
+            Rule::identifier => {
+                exprs.push(Expr::Identifier(p.as_str()));
+            }
+
+            Rule::callArgs => {
+                let args = call_args(p);
+                let call = Expr::Call(exprs, args);
+                exprs = Vec::new();
+                exprs.push(call);
+            }
+
+            unknown_term => panic!("Unexpected term: {:?}", unknown_term),
+        }
     }
-    Expr::Integer(2)
-    /*match pair.as_rule() {
-        Rule::number | Rule::string | Rule::decimal => {
-            literal(pair)
+
+    return match exprs.len() {
+        1 => {
+            exprs.remove(0)
         }
 
-        Rule::call => {
-            call(pair)
+        q => {
+            panic!("the parser seems like it had a bug? internal expers representation was {} at the end.", q);
         }
-
-        unknown_term => panic!("Unexpected term: {:?}", unknown_term),
-    }*/
+    }
 }
-/*
+
 fn literal(pair: Pair<Rule>) -> Expr {
     match pair.as_rule() {
         Rule::number => {
@@ -52,33 +72,11 @@ fn literal(pair: Pair<Rule>) -> Expr {
         }
 
         Rule::string => {
-            Expr::StringLiteral(pair.as_str().to_string())
+            Expr::StringLiteral(pair.as_str())
         }
 
         unknown_term => panic!("Unexpected term: {:?}", unknown_term),
     }
-}
-
-fn call(pair: Pair<Rule>) -> Expr {
-    let pairs = pair.into_inner();
-
-    let mut ident: Vec<String> = Vec::new();
-    let mut args: Option<Vec<Arg>> = None;
-
-    for p in pairs {
-        match p.as_rule() {
-            Rule::identifier => {
-                ident.push(p.as_str().to_string());
-            }
-            
-            Rule::callArgs => {
-                args = Some(call_args(p));
-            }
-
-            unknown_term => panic!("Unexpected term: {:?}", unknown_term),
-        }
-    }
-    Expr::Call(ident, args.expect("call parsing had an oopsie maybe"))
 }
 
 fn call_args(pair: Pair<Rule>) -> Vec<Arg> {
@@ -97,7 +95,7 @@ fn call_args(pair: Pair<Rule>) -> Vec<Arg> {
 }
 
 fn named_arg(pair: Pair<Rule>) -> Arg {
-    let mut ident: Option<String> = None;
+    let mut ident: Option<&str> = None;
     let mut expr: Option<Expr> = None;
 
     let pairs = pair.into_inner();
@@ -105,7 +103,7 @@ fn named_arg(pair: Pair<Rule>) -> Arg {
     for p in pairs {
         match p.as_rule() {
             Rule::identifier => {
-                ident = Some(p.as_str().to_string())
+                ident = Some(p.as_str())
             }
 
             _ => {
@@ -119,4 +117,3 @@ fn named_arg(pair: Pair<Rule>) -> Arg {
         expr.expect("namedArg parsing had an oopsie.")
     )
 }
-*/

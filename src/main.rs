@@ -7,13 +7,13 @@ extern crate pest_derive;
 
 
 fn main() {
-    let input = "b().v().a.d.v(2)
+    let input = "a.b.c
     ";
     let res = parse::parse(input);
     
     match res {
         Ok(ast) => {
-            //println!("{:?}", ast);
+            println!("{:?}", ast);
         }
         Err(err) => {
             println!("Syntax error:");
